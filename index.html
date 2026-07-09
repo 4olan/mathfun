@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Blooket Bot</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #1e1e1e;
+      color: white;
+      text-align: center;
+      padding: 50px;
+    }
+    h1 { color: #00ff88; }
+    input, button {
+      padding: 10px;
+      margin: 10px;
+      font-size: 18px;
+    }
+    button {
+      background: #00ff88;
+      color: black;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>My Blooket Bot</h1>
+  <p>Enter game code:</p>
+  <input type="text" id="code" placeholder="e.g. 123456" />
+  <br>
+  <button onclick="joinGame()">Join Game</button>
+
+  <script>
+    function joinGame() {
+      const code = document.getElementById('code').value;
+      if (!code) {
+        alert("Please enter a game code!");
+        return;
+      }
+      alert("Would join game: " + code + "\n\n(This is just a starter - we'll add real code soon)");
+      // Real Blooket joining code will go here
+    }
+  </script>
+</body>
+</html>
