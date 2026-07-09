@@ -5,73 +5,71 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Blooket Bot</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #0f0f0f; color: #fff; text-align: center; padding: 40px; }
+    body { font-family: Arial, sans-serif; background: #111; color: #0f0; text-align: center; padding: 30px; margin: 0; }
     h1 { color: #00ff88; }
-    input, button, select { padding: 12px; margin: 8px; font-size: 18px; border-radius: 8px; }
-    button { background: #00ff88; color: black; border: none; cursor: pointer; font-weight: bold; }
-    button:hover { background: #00cc6a; }
-    .status { margin: 20px; font-size: 20px; font-weight: bold; }
-    .green { color: #00ff88; }
+    input, button, select { padding: 15px; margin: 10px; font-size: 18px; border-radius: 8px; }
+    button { background: #00ff88; color: black; font-weight: bold; cursor: pointer; }
+    .status { font-size: 22px; margin: 20px; font-weight: bold; }
   </style>
 </head>
 <body>
   <h1>Blooket Bot</h1>
-  <p>Enter code:</p>
-  <input type="text" id="code" placeholder="123456" style="width: 200px;">
   
-  <br><br>
-  <label>Number of Bots: <input type="number" id="amount" value="10" min="1" max="100"></label><br><br>
-  
-  <button onclick="startBot()">Join / Flood Game</button>
-  <button onclick="stopBot()">Stop All</button>
+  <p>Enter Code:</p>
+  <input type="text" id="code" placeholder="7730978" style="width: 250px; text-align: center;">
+
+  <br>
+  <label>Bots: <input type="number" id="amount" value="15" min="1" max="200"></label><br><br>
+
+  <button onclick="floodJoin()">🚀 Start Flood</button>
+  <button onclick="stopAll()">⛔ Stop All</button>
 
   <div class="status" id="status">Status: Ready</div>
 
   <script>
-    let sockets = [];
+    let connections = [];
 
-    async function startBot() {
+    async function floodJoin() {
       const code = document.getElementById('code').value.trim();
-      const amount = parseInt(document.getElementById('amount').value) || 10;
-      
-      if (!code) return alert("Please enter a game code!");
+      let amount = parseInt(document.getElementById('amount').value) || 10;
 
-      document.getElementById('status').innerHTML = `Status: Joining ${amount} bots...`;
-      document.getElementById('status').classList.add('green');
+      if (!code) return alert("Enter a valid game code!");
+
+      document.getElementById('status').innerHTML = `Joining ${amount} bots to game ${code}...`;
 
       for (let i = 0; i < amount; i++) {
+        const botName = `Bot${1000 + i}`;
+        
+        // More realistic join attempt
         try {
-          const name = `Bot${i + 1}_${Math.random().toString(36).substring(7)}`;
           const ws = new WebSocket("wss://games.blooket.com/socket");
-
+          
           ws.onopen = () => {
             ws.send(JSON.stringify({
-              action: "join",
-              gameId: code,
-              name: name
+              "action": "join",
+              "gameId": code,
+              "name": botName,
+              "client": "web"
             }));
           };
 
-          ws.onmessage = (event) => {
-            console.log("Bot response:", event.data);
-          };
+          ws.onerror = () => console.log(`Bot ${i} error`);
+          ws.onclose = () => console.log(`Bot ${i} closed`);
 
-          sockets.push(ws);
-        } catch (e) {}
-        await new Promise(r => setTimeout(r, 300)); // Avoid rate limit
+          connections.push(ws);
+        } catch(e) {}
+
+        await new Promise(r => setTimeout(r, 250)); // Small delay
       }
 
-      document.getElementById('status').innerHTML = `Status: ${amount} bots sent!`;
+      document.getElementById('status').innerHTML = `✅ Sent ${amount} bots! Check the Blooket game.`;
     }
 
-    function stopBot() {
-      sockets.forEach(s => s.close());
-      sockets = [];
-      document.getElementById('status').innerHTML = "Status: All bots stopped";
-      document.getElementById('status').classList.remove('green');
+    function stopAll() {
+      connections.forEach(ws => ws.close());
+      connections = [];
+      document.getElementById('status').innerHTML = "All bots stopped.";
     }
-
-    // Note: This is a basic recreation. Advanced features like auto-answer, first place switch, etc. require more complex reverse-engineered code.
   </script>
 </body>
 </html>
