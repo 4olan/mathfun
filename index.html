@@ -7,68 +7,79 @@
   <style>
     body { font-family: Arial, sans-serif; background: #111; color: #0f0; text-align: center; padding: 30px; margin: 0; }
     h1 { color: #00ff88; }
-    input, button, select { padding: 15px; margin: 10px; font-size: 18px; border-radius: 8px; }
+    input, button, select { padding: 12px; margin: 8px; font-size: 18px; border-radius: 8px; width: 280px; }
     button { background: #00ff88; color: black; font-weight: bold; cursor: pointer; }
-    .status { font-size: 22px; margin: 20px; font-weight: bold; }
+    .status { font-size: 22px; margin: 20px; font-weight: bold; color: #0f0; }
   </style>
 </head>
 <body>
   <h1>Blooket Bot</h1>
   
-  <p>Enter Code:</p>
-  <input type="text" id="code" placeholder="7730978" style="width: 250px; text-align: center;">
+  <p>Enter Game Code:</p>
+  <input type="text" id="code" placeholder="7730978">
 
   <br>
-  <label>Bots: <input type="number" id="amount" value="15" min="1" max="200"></label><br><br>
+  <label>Name: <input type="text" id="name" value="BotPlayer" style="width: 200px;"></label><br><br>
 
-  <button onclick="floodJoin()">🚀 Start Flood</button>
-  <button onclick="stopAll()">⛔ Stop All</button>
+  <button onclick="joinGame()">Join Game</button>
+  <button onclick="floodJoin()">Flood Bots</button>
+  <button onclick="leaveGame()">Leave</button>
 
   <div class="status" id="status">Status: Ready</div>
 
   <script>
-    let connections = [];
+    // Paste key parts from the original script here (Firebase join logic)
+    let botinfo = { connected: false };
+
+    async function joinGame() {
+      const code = document.getElementById('code').value.trim();
+      const name = document.getElementById('name').value.trim() || "Bot" + Math.floor(Math.random()*9999);
+      
+      if (!code) return alert("Enter a game code!");
+
+      document.getElementById('status').innerHTML = "Connecting...";
+
+      // This is the core join logic from the original
+      try {
+        const response = await fetch('https://blooketbot.schoolcheats.net/join', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: code, name: name })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          botinfo.connected = true;
+          document.getElementById('status').innerHTML = `✅ Connected as ${name}`;
+        } else {
+          document.getElementById('status').innerHTML = "Failed: " + (data.msg || "Unknown error");
+        }
+      } catch(e) {
+        document.getElementById('status').innerHTML = "Connection error";
+      }
+    }
 
     async function floodJoin() {
       const code = document.getElementById('code').value.trim();
-      let amount = parseInt(document.getElementById('amount').value) || 10;
+      if (!code) return alert("Enter code first!");
 
-      if (!code) return alert("Enter a valid game code!");
-
-      document.getElementById('status').innerHTML = `Joining ${amount} bots to game ${code}...`;
-
-      for (let i = 0; i < amount; i++) {
-        const botName = `Bot${1000 + i}`;
-        
-        // More realistic join attempt
-        try {
-          const ws = new WebSocket("wss://games.blooket.com/socket");
-          
-          ws.onopen = () => {
-            ws.send(JSON.stringify({
-              "action": "join",
-              "gameId": code,
-              "name": botName,
-              "client": "web"
-            }));
-          };
-
-          ws.onerror = () => console.log(`Bot ${i} error`);
-          ws.onclose = () => console.log(`Bot ${i} closed`);
-
-          connections.push(ws);
-        } catch(e) {}
-
-        await new Promise(r => setTimeout(r, 250)); // Small delay
+      for (let i = 0; i < 15; i++) {
+        setTimeout(() => {
+          const tempName = "FloodBot" + i;
+          fetch('https://blooketbot.schoolcheats.net/join', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: code, name: tempName })
+          });
+        }, i * 400);
       }
-
-      document.getElementById('status').innerHTML = `✅ Sent ${amount} bots! Check the Blooket game.`;
+      document.getElementById('status').innerHTML = "Flooding 15 bots...";
     }
 
-    function stopAll() {
-      connections.forEach(ws => ws.close());
-      connections = [];
-      document.getElementById('status').innerHTML = "All bots stopped.";
+    function leaveGame() {
+      document.getElementById('status').innerHTML = "Disconnected";
+      botinfo.connected = false;
     }
   </script>
 </body>
