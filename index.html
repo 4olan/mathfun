@@ -6,21 +6,18 @@
   <title>Blooket Bot</title>
   <style>
     body {
-      background-color: #111111;
+      background-color: #0a0a0a;
       color: #ffffff;
       font-family: Arial, sans-serif;
       text-align: center;
       padding: 40px;
       margin: 0;
     }
-    h1 {
-      color: #ffffff;
-      margin-bottom: 30px;
-    }
+    h1 { color: #fff; }
     input {
-      background-color: #222222;
+      background: #1f1f1f;
       color: white;
-      border: 2px solid #444444;
+      border: 2px solid #444;
       padding: 12px;
       font-size: 18px;
       width: 280px;
@@ -28,49 +25,86 @@
       border-radius: 6px;
     }
     button {
-      background-color: #ffffff;
+      background: #fff;
       color: black;
       border: none;
-      padding: 14px 32px;
-      font-size: 20px;
+      padding: 14px 40px;
+      font-size: 22px;
       cursor: pointer;
-      border-radius: 6px;
+      border-radius: 8px;
       margin: 15px;
     }
-    button:hover {
-      background-color: #cccccc;
-    }
-    #status {
-      font-size: 22px;
-      margin-top: 30px;
-      min-height: 30px;
-    }
-    .label {
-      display: block;
-      margin: 8px 0 4px;
-      font-size: 18px;
-    }
+    button:hover { background: #ddd; }
+    #status { font-size: 24px; margin-top: 30px; min-height: 40px; }
   </style>
 </head>
 <body>
   <h1>Blooket Bot</h1>
-  
-  <div class="label">Game Code</div>
-  <input id="gcode" placeholder="Enter Game ID" />
 
-  <div class="label">Bot Name</div>
+  <div>Enter code:</div>
+  <input id="gcode" placeholder="Game ID" />
+
+  <div>Nickname:</div>
   <input id="gname" placeholder="Bot Name" value="Bot" />
 
   <br>
-  <label>
-    <input type="checkbox" id="fpswitch" checked> First Place Switch (add spaces)
-  </label>
+  <label><input type="checkbox" id="fpswitch" checked> First Place Switch</label>
 
   <br><br>
-  <button onclick="join()">Add Bot</button>
+  <button onclick="join()">Join / Add Bot</button>
 
   <div id="status">Status: Ready</div>
 
-  <script src="script.js"></script>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-database-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyC8tK5vX8vX8vX8vX8vX8vX8vX8vX8vX8",
+      databaseURL: "https://blooket.firebaseio.com"
+    };
+
+    let app, db;
+
+    async function initFirebase() {
+      if (!app) {
+        app = firebase.initializeApp(firebaseConfig);
+        db = firebase.database();
+      }
+    }
+
+    async function join() {
+      await initFirebase();
+
+      const code = document.getElementById('gcode').value.trim();
+      let name = document.getElementById('gname').value.trim() || "Bot";
+      const status = document.getElementById('status');
+
+      if (!code) {
+        status.textContent = "Enter a game code!";
+        return;
+      }
+
+      if (document.getElementById('fpswitch').checked) {
+        name = "  " + name;
+      }
+
+      status.textContent = "Adding bot...";
+
+      try {
+        const ref = db.ref(`games/${code}/players`);
+        await ref.push({ name: name });
+        status.style.color = "lime";
+        status.textContent = `Bot "${name}" added!`;
+      } catch (e) {
+        status.style.color = "red";
+        status.textContent = "Failed to connect";
+        console.error(e);
+      }
+    }
+
+    window.join = join;
+  </script>
 </body>
 </html>
